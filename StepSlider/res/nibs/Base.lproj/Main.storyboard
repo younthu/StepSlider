@@ -18,11 +18,11 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dNa-lq-0iy" customClass="StepSlider">
-                                <rect key="frame" x="20" y="58" width="560" height="30"/>
+                                <rect key="frame" x="20" y="58" width="560" height="80"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" red="0.2137643914" green="0.73483758219999995" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="30" id="KAr-04-dEN"/>
+                                    <constraint firstAttribute="height" constant="80" id="KAr-04-dEN"/>
                                 </constraints>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="number" keyPath="maxCount">
@@ -59,7 +59,7 @@
                                 </connections>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KDz-eV-f0y">
-                                <rect key="frame" x="180" y="111" width="240" height="21"/>
+                                <rect key="frame" x="180" y="161" width="240" height="21"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="21" id="BCC-mi-iIc"/>
                                     <constraint firstAttribute="width" constant="240" id="NHV-de-Sem"/>
@@ -69,7 +69,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eYk-9l-jGe">
-                                <rect key="frame" x="215" y="168" width="171" height="126"/>
+                                <rect key="frame" x="215" y="218" width="171" height="126"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4mV-vZ-SJb">
                                         <rect key="frame" x="8" y="8" width="46" height="30"/>

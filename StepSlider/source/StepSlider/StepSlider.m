@@ -34,6 +34,7 @@ void withoutCAAnimation(withoutAnimationBlock code)
     CAShapeLayer *_sliderCircleLayer;
     CAShapeLayer *_sliderCircleLayer2;
     NSMutableArray <CAShapeLayer *> *_trackCirclesArray;
+    NSMutableArray <CATextLayer *>  *_trackLabelsArray;
     
     BOOL animateLayouts;
     
@@ -85,6 +86,7 @@ void withoutCAAnimation(withoutAnimationBlock code)
 - (void)addLayers
 {
     _trackCirclesArray = [[NSMutableArray alloc] init];
+    _trackLabelsArray  = [[NSMutableArray alloc] init];
     
     _trackLayer = [CAShapeLayer layer];
     _sliderCircleLayer = [CAShapeLayer layer];
@@ -114,7 +116,7 @@ void withoutCAAnimation(withoutAnimationBlock code)
 
 - (void)layoutLayersAnimated:(BOOL)animated
 {
-    CGRect contentFrame = CGRectMake(maxRadius, 0.f, self.bounds.size.width - 2 * maxRadius, self.bounds.size.height);
+    CGRect contentFrame = CGRectMake(maxRadius, 0.f, self.bounds.size.width - 2 * maxRadius, self.bounds.size.height - 50);
     
     CGFloat stepWidth       = contentFrame.size.width / (self.maxCount - 1);
     CGFloat circleFrameSide = self.trackCircleRadius * 2.f;
@@ -182,21 +184,41 @@ void withoutCAAnimation(withoutAnimationBlock code)
         _trackCirclesArray = [[_trackCirclesArray subarrayWithRange:NSMakeRange(0, self.maxCount)] mutableCopy];
     }
     
+    if (_trackLabelsArray.count > self.maxCount) {
+        
+        for (NSUInteger i = self.maxCount; i < _trackCirclesArray.count; i++) {
+            [_trackLabelsArray[i] removeFromSuperlayer];
+        }
+        
+        _trackLabelsArray = [[_trackLabelsArray subarrayWithRange:NSMakeRange(0, self.maxCount)] mutableCopy];
+    }
+    
     for (NSUInteger i = 0; i < self.maxCount; i++) {
         CAShapeLayer *trackCircle;
+        CATextLayer  *trackLabel;
         
         if (i < _trackCirclesArray.count) {
             trackCircle = _trackCirclesArray[i];
+            trackLabel = _trackLabelsArray[i];
         } else {
             trackCircle       = [CAShapeLayer layer];
+            trackLabel        = [self textLayerWithText:[NSString stringWithFormat:@"%ld",i]];//[CATextLayer layer];
 
             [self.layer addSublayer:trackCircle];
+            [self.layer addSublayer:trackLabel];
+            
             [_trackCirclesArray addObject:trackCircle];
+            [_trackLabelsArray addObject:trackLabel];
         }
         
         trackCircle.frame    = CGRectMake(0.f, 0.f, circleFrameSide, circleFrameSide);
         trackCircle.path     = [UIBezierPath bezierPathWithRoundedRect:trackCircle.bounds cornerRadius:circleFrameSide / 2].CGPath;
         trackCircle.position = CGPointMake(contentFrame.origin.x + stepWidth * i, contentFrame.size.height / 2.f);
+        
+        
+        trackLabel.frame     = CGRectMake(0.f,0.f, circleFrameSide*2, circleFrameSide*2);
+        trackLabel.position  = CGPointMake(contentFrame.origin.x + stepWidth * i, contentFrame.size.height + 20);
+//        trackLabel.string    = [NSString stringWithFormat:@"%ld",i];
         
         if (animated) {
             CGColorRef newColor = [self trackCircleColor:trackCircle];
@@ -235,6 +257,33 @@ void withoutCAAnimation(withoutAnimationBlock code)
     
     [self layoutLayersAnimated:animateLayouts];
     animateLayouts = NO;
+}
+
+- (CATextLayer *)textLayerWithText:(NSString*)text{
+    //create a text layer
+    CATextLayer *textLayer = [CATextLayer layer];
+//    textLayer.frame = self.labelView.bounds;
+//    [self.labelView.layer addSublayer:textLayer];
+    
+    //set text attributes
+    textLayer.foregroundColor = [UIColor blackColor].CGColor;
+    textLayer.alignmentMode = kCAAlignmentCenter;
+    textLayer.wrapped = YES;
+    
+    //choose a font
+    UIFont *font = [UIFont systemFontOfSize:15];
+    
+    //set layer font
+    CFStringRef fontName = (__bridge CFStringRef)font.fontName;
+    CGFontRef fontRef = CGFontCreateWithFontName(fontName);
+    textLayer.font = fontRef;
+    textLayer.fontSize = font.pointSize;
+    CGFontRelease(fontRef);
+    
+    
+    //set layer text
+    textLayer.string = text;
+    return textLayer;
 }
 
 #pragma mark - Helpers

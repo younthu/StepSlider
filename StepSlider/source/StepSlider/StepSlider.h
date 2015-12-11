@@ -25,4 +25,6 @@ IB_DESIGNABLE
 @property (nonatomic, strong) IBInspectable UIColor *trackColor;
 @property (nonatomic, strong) IBInspectable UIColor *sliderCircleColor;
 
+@property (nonatomic, strong) IBInspectable NSArray *labels;
+
 @end
