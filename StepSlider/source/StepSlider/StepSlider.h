@@ -13,7 +13,10 @@ IB_DESIGNABLE
 @interface StepSlider : UIControl
 
 @property (nonatomic) IBInspectable NSUInteger maxCount;
+//@property (nonatomic) IBInspectable NSUInteger minCount;
 @property (nonatomic) IBInspectable NSUInteger index;
+@property (nonatomic) IBInspectable NSUInteger indexMin;
+@property (nonatomic) IBInspectable BOOL       doubleTracker;
 
 @property (nonatomic) IBInspectable CGFloat trackHeight;
 @property (nonatomic) IBInspectable CGFloat trackCircleRadius;

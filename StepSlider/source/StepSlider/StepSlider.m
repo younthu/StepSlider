@@ -32,6 +32,7 @@ void withoutCAAnimation(withoutAnimationBlock code)
 {
     CAShapeLayer *_trackLayer;
     CAShapeLayer *_sliderCircleLayer;
+    CAShapeLayer *_sliderCircleLayer2;
     NSMutableArray <CAShapeLayer *> *_trackCirclesArray;
     
     BOOL animateLayouts;
@@ -41,6 +42,11 @@ void withoutCAAnimation(withoutAnimationBlock code)
     
     CGPoint startTouchPosition;
     CGPoint startSliderPosition;
+    
+    CGPoint startTouchPosition2;
+    CGPoint startSliderPosition2;
+    
+    NSInteger trakcingIndex;
 }
 
 @end
@@ -82,8 +88,10 @@ void withoutCAAnimation(withoutAnimationBlock code)
     
     _trackLayer = [CAShapeLayer layer];
     _sliderCircleLayer = [CAShapeLayer layer];
+    _sliderCircleLayer2 = [CAShapeLayer layer];
     
     [self.layer addSublayer:_sliderCircleLayer];
+    [self.layer addSublayer:_sliderCircleLayer2];
     [self.layer addSublayer:_trackLayer];
 }
 
@@ -98,6 +106,8 @@ void withoutCAAnimation(withoutAnimationBlock code)
     _sliderCircleRadius = 12.5f;
     _trackColor         = [UIColor colorWithWhite:0.41f alpha:1.f];
     _sliderCircleColor  = [UIColor whiteColor];
+    _doubleTracker      = NO;
+    
     
     [self setNeedsLayout];
 }
@@ -113,6 +123,7 @@ void withoutCAAnimation(withoutAnimationBlock code)
     CGRect  sliderDrawRect  = CGRectMake((sliderFrameSide - sliderDiameter) / 2.f, (sliderFrameSide - sliderDiameter) / 2.f, sliderDiameter, sliderDiameter);
     
     CGPoint oldPosition = _sliderCircleLayer.position;
+    CGPoint oldPosition2 = _sliderCircleLayer2.position;
     CGPathRef oldPath   = _trackLayer.path;
     
     if (!animated) {
@@ -125,11 +136,25 @@ void withoutCAAnimation(withoutAnimationBlock code)
     _sliderCircleLayer.fillColor = [self.sliderCircleColor CGColor];
     _sliderCircleLayer.position  = CGPointMake(contentFrame.origin.x + stepWidth * self.index , (contentFrame.size.height ) / 2.f);
     
+    
+    
+    _sliderCircleLayer2.frame     = CGRectMake(0.f, 0.f, sliderFrameSide, sliderFrameSide);
+    _sliderCircleLayer2.path     = [UIBezierPath bezierPathWithRoundedRect:sliderDrawRect cornerRadius:sliderFrameSide / 2].CGPath;
+    _sliderCircleLayer2.fillColor = [self.sliderCircleColor CGColor];
+    _sliderCircleLayer2.position  = CGPointMake(contentFrame.origin.x + stepWidth * self.indexMin, (contentFrame.size.height ) / 2.f);
+    
     if (animated) {
         CABasicAnimation *basicSliderAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
         basicSliderAnimation.duration = [CATransaction animationDuration];
         basicSliderAnimation.fromValue = [NSValue valueWithCGPoint:(oldPosition)];
         [_sliderCircleLayer addAnimation:basicSliderAnimation forKey:@"position"];
+        
+        
+        CABasicAnimation *basicSliderAnimation2 = [CABasicAnimation animationWithKeyPath:@"position"];
+        basicSliderAnimation2.duration = [CATransaction animationDuration];
+        basicSliderAnimation2.fromValue = [NSValue valueWithCGPoint:(oldPosition2)];
+        [_sliderCircleLayer2 addAnimation:basicSliderAnimation2 forKey:@"position"];
+        
     }
     
     _trackLayer.frame = CGRectMake(contentFrame.origin.x,
@@ -198,7 +223,10 @@ void withoutCAAnimation(withoutAnimationBlock code)
     }
     
     [_sliderCircleLayer removeFromSuperlayer];
+    [_sliderCircleLayer2 removeFromSuperlayer];
+    
     [self.layer addSublayer:_sliderCircleLayer];
+    [self.layer addSublayer:_sliderCircleLayer2];
 }
 
 - (void)layoutSubviews
@@ -234,7 +262,8 @@ void withoutCAAnimation(withoutAnimationBlock code)
 - (CGPathRef)fillingPath
 {
     CGRect fillRect     = _trackLayer.bounds;
-    fillRect.size.width = self.sliderPosition;
+    fillRect.size.width = self.sliderRangeLength;//self.sliderPosition;
+    fillRect.origin.x   = _sliderCircleLayer2.position.x;
     
     return [UIBezierPath bezierPathWithRect:fillRect].CGPath;
 }
@@ -242,6 +271,16 @@ void withoutCAAnimation(withoutAnimationBlock code)
 - (CGFloat)sliderPosition
 {
     return _sliderCircleLayer.position.x - maxRadius;
+}
+
+- (CGFloat)sliderPosition2
+{
+    return _sliderCircleLayer2.position.x - maxRadius;
+}
+
+- (CGFloat)sliderRangeLength
+{
+    return _sliderCircleLayer.position.x - _sliderCircleLayer2.position.x;
 }
 
 - (CGFloat)trackCirclePosition:(CAShapeLayer *)trackCircle
@@ -263,10 +302,22 @@ void withoutCAAnimation(withoutAnimationBlock code)
 
 - (BOOL)beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event
 {
+    trakcingIndex = 0;
     startTouchPosition = [touch locationInView:self];
     startSliderPosition = _sliderCircleLayer.position;
     
-    return CGRectContainsPoint(_sliderCircleLayer.frame, startTouchPosition);
+    startTouchPosition2 = [touch locationInView:self];
+    startSliderPosition2 = _sliderCircleLayer2.position;
+    
+    if (CGRectContainsPoint(_sliderCircleLayer.frame, startTouchPosition)) {
+        trakcingIndex  = 1;
+        return YES;
+    }else if(CGRectContainsPoint(_sliderCircleLayer2.frame, startSliderPosition2)){
+        trakcingIndex = 2;
+        return YES;
+    }
+    
+    return  NO;
 }
 
 - (BOOL)continueTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event
@@ -274,16 +325,32 @@ void withoutCAAnimation(withoutAnimationBlock code)
     CGFloat position = startSliderPosition.x - (startTouchPosition.x - [touch locationInView:self].x);
     CGFloat limitedPosition = fminf(fmaxf(maxRadius, position), self.bounds.size.width - maxRadius);
     
+    CGFloat position2 = startSliderPosition2.x - (startTouchPosition2.x - [touch locationInView:self].x);
+    CGFloat limitedPosition2 = fminf(fmaxf(maxRadius, position2), self.bounds.size.width - maxRadius);
+    
     withoutCAAnimation(^{
-        _sliderCircleLayer.position = CGPointMake(limitedPosition, _sliderCircleLayer.position.y);
+        if (trakcingIndex == 1) {
+            _sliderCircleLayer.position = CGPointMake(limitedPosition, _sliderCircleLayer.position.y);
+        }else {
+            _sliderCircleLayer2.position = CGPointMake(limitedPosition2, _sliderCircleLayer2.position.y);
+        }
         _trackLayer.path = [self fillingPath];
         
         NSUInteger index = (self.sliderPosition + diff) / (_trackLayer.bounds.size.width / (self.maxCount - 1));
-        if (_index != index) {
+        NSUInteger index2 = (self.sliderPosition2 + diff) / (_trackLayer.bounds.size.width / (self.maxCount - 1));
+        if (_index != index && trakcingIndex == 1) {
             for (CAShapeLayer *trackCircle in _trackCirclesArray) {
                 trackCircle.fillColor = [self trackCircleColor:trackCircle];
             }
             _index = index;
+            [self sendActionsForControlEvents:UIControlEventValueChanged];
+        }
+        
+        if (_indexMin != index2 && trakcingIndex == 2) {
+            for (CAShapeLayer *trackCircle in _trackCirclesArray) {
+                trackCircle.fillColor = [self trackCircleColor:trackCircle];
+            }
+            _indexMin = index2;
             [self sendActionsForControlEvents:UIControlEventValueChanged];
         }
     });
